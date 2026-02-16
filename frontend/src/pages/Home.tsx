@@ -1,8 +1,12 @@
-import React from 'react';
-import { Card, Typography, Row, Col } from 'antd';
+import { Suspense, lazy } from 'react';
+import { Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { Compass, Star, User, Book, PenTool, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+
+// Lazy load 3D components
+const Scene3DBanner = lazy(() => import('../components/3d/Scene3D').then(mod => ({ default: mod.Scene3DBanner })));
+const Scene3D = lazy(() => import('../components/3d/Scene3D').then(mod => ({ default: mod.Scene3D })));
 
 const { Title, Paragraph } = Typography;
 
@@ -74,7 +78,7 @@ const Home: React.FC = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="text-center mb-20 relative"
+        className="text-center mb-16 relative"
       >
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#C41E3A] opacity-5 rounded-full blur-[100px] pointer-events-none"></div>
         <Title level={1} className="!text-5xl md:!text-6xl font-serif !mb-6 text-[#E0E0E0] tracking-wide relative z-10 drop-shadow-2xl">
@@ -88,11 +92,56 @@ const Home: React.FC = () => {
         </Paragraph>
       </motion.div>
 
+      {/* 3D Scene Banner */}
+      <div className="mb-16">
+        <Suspense fallback={
+          <div className="w-full h-64 md:h-80 lg:h-96 bg-gradient-to-br from-[#1a1a2e] to-[#0f0f1a] rounded-2xl flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C41E3A] mx-auto mb-4"></div>
+              <p className="text-gray-400">加载 3D 场景中...</p>
+            </div>
+          </div>
+        }>
+          <Scene3DBanner />
+        </Suspense>
+      </div>
+
+      {/* 3D Interactive Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.6 }}
+        className="mb-20"
+      >
+        <div className="text-center mb-8">
+          <Title level={2} className="font-serif !text-3xl !text-[#E0E0E0] !mb-3">
+            <span className="text-[#C41E3A]">3D</span> 沉浸式体验
+          </Title>
+          <Paragraph className="text-gray-400 max-w-2xl mx-auto">
+            通过现代 3D 渲染技术，将传统太极、八卦元素立体呈现。<br />
+            您可以拖拽旋转、缩放查看每一个细节，感受传统文化的魅力。
+          </Paragraph>
+        </div>
+
+        <Suspense fallback={
+          <div className="w-full h-[500px] bg-[#1a1a2e] rounded-2xl flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FFD700] mx-auto mb-4"></div>
+              <p className="text-gray-400">加载 3D 交互场景中...</p>
+            </div>
+          </div>
+        }>
+          <Scene3D initialMode="both" height="500px" />
+        </Suspense>
+      </motion.div>
+
       {/* Core Modules Grid */}
       <motion.div 
         variants={container}
         initial="hidden"
-        animate="show"
+        whileInView="show"
+        viewport={{ once: true, amount: 0.2 }}
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-20"
       >
         {features.map((feature, index) => (
@@ -125,13 +174,13 @@ const Home: React.FC = () => {
 
       {/* CTA Section */}
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }}
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
         transition={{ duration: 0.6 }}
         className="relative overflow-hidden rounded-[32px] p-[1px]"
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-[#C41E3A] via-[#FFD700] to-[#C41E3A] opacity-20 animate-gradient-x"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#C41E3A] via-[#FFD700] to-[#C41E3A] opacity-20"></div>
         <div className="relative bg-[#1a1a1a] rounded-[31px] p-12 md:p-16 text-center border border-white/5 backdrop-blur-xl">
           <div className="max-w-2xl mx-auto">
             <Title level={2} className="font-serif !mb-6 !text-3xl md:!text-4xl !text-[#E0E0E0]">

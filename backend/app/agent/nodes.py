@@ -33,7 +33,7 @@ llm = ChatOpenAI(
 
 # Define Nodes
 
-def retrieve(state: AgentState):
+async def retrieve(state: AgentState):
     """
     Retrieve documents from vector store.
     """
@@ -51,9 +51,9 @@ def retrieve(state: AgentState):
         
     return {"documents": documents, "question": question}
 
-def generate(state: AgentState):
+async def generate(state: AgentState):
     """
-    Generate answer using RAG on retrieved documents
+    Generate answer using RAG on retrieved documents (async version)
     """
     print("---GENERATE---")
     question = state["question"]
@@ -65,8 +65,14 @@ def generate(state: AgentState):
         ("human", "Question: {question}\nContext: {context}")
     ])
     chain = prompt | llm
-    response = chain.invoke({"question": question, "context": "\n".join(documents)})
-    return {"generation": response.content}
+    
+    # Use async invocation for better performance
+    try:
+        response = await chain.ainvoke({"question": question, "context": "\n".join(documents)})
+        return {"generation": response.content}
+    except Exception as e:
+        print(f"Generation error: {e}")
+        return {"generation": f"抱歉，生成回答时出现错误: {str(e)}"}
 
 def grade_documents(state: AgentState):
     """

@@ -4,8 +4,13 @@ import MainLayout from './components/MainLayout'
 import Home from './pages/Home'
 import Chat from './pages/Chat'
 import Profile from './pages/Profile'
+import Login from './pages/Login'
+import Settings from './pages/Settings'
+import ReportView from './pages/ReportView'
 
 function App() {
+  console.log('App rendering...')
+  
   return (
     <ConfigProvider
       theme={{
@@ -37,11 +42,15 @@ function App() {
     >
       <Router>
         <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/report/:id" element={<ReportView />} />
+          <Route path="/share/:code" element={<ReportView />} />
+          
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Home />} />
             <Route path="chat" element={<Chat />} />
             <Route path="profile" element={<Profile />} />
-            <Route path="history" element={<Profile />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
       </Router>

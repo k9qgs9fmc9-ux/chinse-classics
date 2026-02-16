@@ -104,11 +104,6 @@ const MainLayout: React.FC = () => {
           items={menuItems}
           onClick={({ key }) => navigate(key)}
           className="!bg-transparent mt-8 px-4 border-none"
-          itemIcon={(props) => (
-            <span className={`transition-colors duration-300 ${location.pathname === props.key ? 'text-[#FFD700]' : 'text-gray-400 group-hover:text-[#E0E0E0]'}`}>
-              {props.icon}
-            </span>
-          )}
         />
         
         <div className="absolute bottom-0 w-full p-8 text-center">
