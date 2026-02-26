@@ -4,6 +4,7 @@ import { Card, Button, Tabs, Tag, Row, Col, Statistic, message } from 'antd';
 import { Share2, Download, Printer, ArrowLeft, Clock, User, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
+import ReactECharts from 'echarts-for-react';
 
 // 模拟报告数据
 const mockReportData = {
@@ -156,15 +157,117 @@ const ReportView: React.FC = () => {
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-lg text-[#E0E0E0] mb-4">五行分布</h3>
-                    <div className="h-64 bg-white/5 rounded-lg flex items-center justify-center">
-                      <span className="text-gray-500">五行分布图表区域</span>
-                    </div>
+                    <ReactECharts
+                      option={{
+                        tooltip: { trigger: 'item', formatter: '{b}: {c}%' },
+                        legend: { 
+                          orient: 'vertical', 
+                          right: 10, 
+                          top: 'center',
+                          textStyle: { color: '#E0E0E0' }
+                        },
+                        series: [{
+                          type: 'pie',
+                          radius: ['40%', '70%'],
+                          avoidLabelOverlap: false,
+                          itemStyle: {
+                            borderRadius: 10,
+                            borderColor: '#1F1F1F',
+                            borderWidth: 2
+                          },
+                          label: { show: false },
+                          emphasis: {
+                            label: { show: true, fontSize: 14, fontWeight: 'bold', color: '#E0E0E0' }
+                          },
+                          data: report.data.wuxing.labels.map((label, i) => ({
+                            value: report.data.wuxing.values[i],
+                            name: label,
+                            itemStyle: {
+                              color: ['#FFD700', '#52c41a', '#1890ff', '#C41E3A', '#8b4513'][i]
+                            }
+                          }))
+                        }]
+                      }}
+                      style={{ height: 250 }}
+                    />
                   </div>
                   <div>
                     <h3 className="text-lg text-[#E0E0E0] mb-4">十神分析</h3>
-                    <div className="h-64 bg-white/5 rounded-lg flex items-center justify-center">
-                      <span className="text-gray-500">十神分析图表区域</span>
-                    </div>
+                    <ReactECharts
+                      option={{
+                        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+                        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                        xAxis: { 
+                          type: 'category', 
+                          data: report.data.shishen.labels,
+                          axisLabel: { color: '#888', rotate: 45, fontSize: 10 },
+                          axisLine: { lineStyle: { color: '#333' } }
+                        },
+                        yAxis: { 
+                          type: 'value',
+                          axisLabel: { color: '#888' },
+                          splitLine: { lineStyle: { color: '#333' } }
+                        },
+                        series: [{
+                          type: 'bar',
+                          data: report.data.shishen.values,
+                          itemStyle: {
+                            color: {
+                              type: 'linear',
+                              x: 0, y: 0, x2: 0, y2: 1,
+                              colorStops: [
+                                { offset: 0, color: '#C41E3A' },
+                                { offset: 1, color: '#FFD700' }
+                              ]
+                            },
+                            borderRadius: [4, 4, 0, 0]
+                          }
+                        }]
+                      }}
+                      style={{ height: 280 }}
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-lg text-[#E0E0E0] mb-4">大运走势</h3>
+                    <ReactECharts
+                      option={{
+                        tooltip: { trigger: 'axis' },
+                        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                        xAxis: { 
+                          type: 'category', 
+                          data: report.data.dayun.years,
+                          axisLabel: { color: '#888' },
+                          axisLine: { lineStyle: { color: '#333' } }
+                        },
+                        yAxis: { 
+                          type: 'value',
+                          min: 50,
+                          max: 100,
+                          axisLabel: { color: '#888' },
+                          splitLine: { lineStyle: { color: '#333' } }
+                        },
+                        series: [{
+                          type: 'line',
+                          data: report.data.dayun.fortune,
+                          smooth: true,
+                          symbol: 'circle',
+                          symbolSize: 8,
+                          lineStyle: { color: '#C41E3A', width: 3 },
+                          itemStyle: { color: '#FFD700' },
+                          areaStyle: {
+                            color: {
+                              type: 'linear',
+                              x: 0, y: 0, x2: 0, y2: 1,
+                              colorStops: [
+                                { offset: 0, color: 'rgba(196, 30, 58, 0.4)' },
+                                { offset: 1, color: 'rgba(196, 30, 58, 0.05)' }
+                              ]
+                            }
+                          }
+                        }]
+                      }}
+                      style={{ height: 200 }}
+                    />
                   </div>
                 </div>
               </Tabs.TabPane>

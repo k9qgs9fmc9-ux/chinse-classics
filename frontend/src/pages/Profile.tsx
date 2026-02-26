@@ -1,38 +1,76 @@
-import React from 'react';
-import { Card, Avatar, List, Typography, Button, Tabs } from 'antd';
-import { User, Crown, Settings, LogOut, Clock, Bookmark } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Card, Avatar, List, Typography, Button, Tabs, Spin, Empty } from 'antd';
+import { User, Crown, Settings, LogOut, Clock, Bookmark, Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { historyApi, History } from '../services/api';
 
 const { Title, Text } = Typography;
 
 const Profile: React.FC = () => {
-  const history = [
-    {
-      id: 1,
-      type: '周易占卜',
-      question: '最近工作调动是否顺利？',
-      date: '2024-03-15',
-      status: 'completed',
-    },
-    {
-      id: 2,
-      type: '星座运势',
-      question: '白羊座本周运势',
-      date: '2024-03-14',
-      status: 'completed',
-    },
-    {
-      id: 3,
-      type: '起名建议',
-      question: '姓李，男宝宝起名',
-      date: '2024-03-10',
-      status: 'completed',
-    },
-  ];
+  const { user, logout, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [histories, setHistories] = useState<History[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ total: 0, by_type: {} });
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    fetchHistories();
+  }, [isAuthenticated]);
+
+  const fetchHistories = async () => {
+    try {
+      const [historiesRes, statsRes] = await Promise.all([
+        historyApi.getHistories({ page_size: 10 }),
+        historyApi.getStats()
+      ]);
+      setHistories(historiesRes.data.items || []);
+      setStats(statsRes.data);
+    } catch (error) {
+      console.error('Failed to fetch histories:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+  };
+
+  const getTypeLabel = (type: string) => {
+    const map: Record<string, string> = {
+      iching: '周易占卜',
+      horoscope: '星座运势',
+      zodiac: '生肖配对',
+      bazi: '八字命理',
+      naming: '起名建议',
+    };
+    return map[type] || type;
+  };
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  };
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* User Info Card */}
         <div className="md:col-span-1 space-y-6">
           <Card 
             className="!bg-white/5 !border-white/10 text-center shadow-lg backdrop-blur-md relative overflow-hidden"
@@ -46,27 +84,30 @@ const Profile: React.FC = () => {
                   size={100} 
                   className="bg-[#C41E3A] text-3xl border-4 border-[#1F1F1F] shadow-xl" 
                   icon={<User />} 
+                  src={user.avatar}
                 />
-                <div className="absolute -bottom-2 -right-2 bg-[#FFD700] text-black text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1 shadow-lg border border-[#1F1F1F]">
-                  <Crown size={12} fill="black" /> VIP
-                </div>
+                {user.is_vip && (
+                  <div className="absolute -bottom-2 -right-2 bg-[#FFD700] text-black text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1 shadow-lg border border-[#1F1F1F]">
+                    <Crown size={12} fill="black" /> {user.vip_level || 'VIP'}
+                  </div>
+                )}
               </div>
             </div>
             
-            <Title level={3} className="!mb-1 !text-[#E0E0E0] font-serif">国学爱好者</Title>
-            <Text className="text-gray-500">ID: 88888888</Text>
+            <Title level={3} className="!mb-1 !text-[#E0E0E0] font-serif">{user.nickname || user.username}</Title>
+            <Text className="text-gray-500">ID: {user.id.toString().padStart(8, '0')}</Text>
             
             <div className="mt-8 flex justify-around border-t border-white/10 pt-6">
               <div className="text-center group cursor-pointer">
-                <div className="text-2xl font-bold text-[#FFD700] group-hover:text-[#C41E3A] transition-colors">128</div>
+                <div className="text-2xl font-bold text-[#FFD700] group-hover:text-[#C41E3A] transition-colors">{user.credits || 0}</div>
                 <div className="text-xs text-gray-500 mt-1 uppercase tracking-wider">积分</div>
               </div>
               <div className="text-center group cursor-pointer">
-                <div className="text-2xl font-bold text-[#FFD700] group-hover:text-[#C41E3A] transition-colors">15</div>
+                <div className="text-2xl font-bold text-[#FFD700] group-hover:text-[#C41E3A] transition-colors">{stats.total}</div>
                 <div className="text-xs text-gray-500 mt-1 uppercase tracking-wider">咨询</div>
               </div>
               <div className="text-center group cursor-pointer">
-                <div className="text-2xl font-bold text-[#FFD700] group-hover:text-[#C41E3A] transition-colors">3</div>
+                <div className="text-2xl font-bold text-[#FFD700] group-hover:text-[#C41E3A] transition-colors">0</div>
                 <div className="text-xs text-gray-500 mt-1 uppercase tracking-wider">收藏</div>
               </div>
             </div>
@@ -74,13 +115,19 @@ const Profile: React.FC = () => {
 
           <Card className="!bg-white/5 !border-white/10 shadow-lg backdrop-blur-md" bordered={false}>
             <List split={false}>
-              <List.Item className="!cursor-pointer hover:!bg-white/5 !rounded-lg !px-3 !transition-all !border-b-0 group mb-1">
+              <List.Item 
+                className="!cursor-pointer hover:!bg-white/5 !rounded-lg !px-3 !transition-all !border-b-0 group mb-1"
+                onClick={() => navigate('/settings')}
+              >
                 <div className="flex items-center gap-4 text-[#E0E0E0] group-hover:text-[#FFD700] transition-colors w-full py-1">
                   <Settings size={20} className="text-gray-500 group-hover:text-[#FFD700] transition-colors" />
                   <span className="text-base">系统设置</span>
                 </div>
               </List.Item>
-              <List.Item className="!cursor-pointer hover:!bg-red-900/20 !rounded-lg !px-3 !transition-all !border-b-0 group mt-1">
+              <List.Item 
+                className="!cursor-pointer hover:!bg-red-900/20 !rounded-lg !px-3 !transition-all !border-b-0 group mt-1"
+                onClick={handleLogout}
+              >
                 <div className="flex items-center gap-4 text-[#E0E0E0] group-hover:text-[#C41E3A] transition-colors w-full py-1">
                   <LogOut size={20} className="text-gray-500 group-hover:text-[#C41E3A] transition-colors" />
                   <span className="text-base">退出登录</span>
@@ -90,7 +137,6 @@ const Profile: React.FC = () => {
           </Card>
         </div>
 
-        {/* Content Area */}
         <div className="md:col-span-2">
           <Card 
             className="!bg-white/5 !border-white/10 shadow-lg h-full backdrop-blur-md" 
@@ -109,15 +155,29 @@ const Profile: React.FC = () => {
                       <Clock size={18} /> 历史记录
                     </span>
                   ),
-                  children: (
+                  children: loading ? (
+                    <div className="flex justify-center py-12">
+                      <Spin />
+                    </div>
+                  ) : histories.length === 0 ? (
+                    <Empty 
+                      description="暂无咨询记录" 
+                      className="py-12"
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    />
+                  ) : (
                     <List
                       itemLayout="horizontal"
-                      dataSource={history}
+                      dataSource={histories}
                       className="profile-list"
                       renderItem={(item) => (
                         <List.Item
                           actions={[
-                            <Button type="link" className="!text-[#FFD700] hover:!text-[#C41E3A]">
+                            <Button 
+                              type="link" 
+                              className="!text-[#FFD700] hover:!text-[#C41E3A]"
+                              onClick={() => navigate(`/report/${item.id}`)}
+                            >
                               查看详情
                             </Button>
                           ]}
@@ -126,14 +186,14 @@ const Profile: React.FC = () => {
                           <List.Item.Meta
                             avatar={
                               <div className="bg-[#C41E3A]/10 p-3 rounded-xl text-[#C41E3A]">
-                                <Clock size={24} />
+                                <Star size={24} />
                               </div>
                             }
                             title={
                               <div className="flex justify-between items-center mb-1">
-                                <span className="text-lg font-serif text-[#E0E0E0]">{item.type}</span>
+                                <span className="text-lg font-serif text-[#E0E0E0]">{getTypeLabel(item.type)}</span>
                                 <Text className="!text-gray-500 text-xs font-normal bg-white/5 px-2 py-1 rounded">
-                                  {item.date}
+                                  {formatDate(item.created_at)}
                                 </Text>
                               </div>
                             }

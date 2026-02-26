@@ -2,6 +2,28 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
+export interface History {
+  id: number;
+  type: string;
+  question: string;
+  answer: string;
+  session_id?: string;
+  tokens_used?: number;
+  duration?: number;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface Report {
+  id: number;
+  title: string;
+  type: string;
+  content: string;
+  data?: object;
+  share_code?: string;
+  created_at: string;
+}
+
 // 创建axios实例
 const api = axios.create({
   baseURL: API_URL,
